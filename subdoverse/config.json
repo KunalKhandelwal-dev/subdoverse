@@ -1,0 +1,38 @@
+{
+    "performance": {
+        "threads": 50
+    },
+
+    "network": {
+        "timeout": 10,
+        "dns_timeout": 5,
+        "retries": 3
+    },
+
+    "tools": {
+        "subfinder_path": "subfinder",
+        "assetfinder_path": "assetfinder",
+        "amass_path": "amass",
+        "httpx_path": "httpx",
+
+        "subfinder_timeout": 120,
+        "assetfinder_timeout": 120,
+        "amass_timeout": 300,
+        "httpx_timeout": 30,
+        "crtsh_timeout": 10
+    },
+
+    "logging": {
+        "directory": "logs",
+        "file": "recon.log",
+        "level": "INFO"
+    },
+
+    "output": {
+        "directory": "output",
+        "csv": "output/results.csv",
+        "json": "output/results.json",
+        "report": "output/report.md",
+        "default_format": "csv"
+    }
+}
