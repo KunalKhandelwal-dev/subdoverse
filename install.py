@@ -226,20 +226,55 @@ def path_contains(directory):
 
     return directory in os.environ.get("PATH", "").split(os.pathsep)
 
+def get_shell_config():
+    """
+    Return the user's shell configuration file.
+    """
+
+    shell = os.environ.get("SHELL", "")
+    home = os.path.expanduser("~")
+
+    if shell.endswith("bash"):
+        return os.path.join(home, ".bashrc")
+
+    elif shell.endswith("zsh"):
+        return os.path.join(home, ".zshrc")
+
+    else:
+        return os.path.join(home, ".profile")
+
+def shell_config_contains(shell_config, directory):
+    """
+    Check whether the shell configuration file
+    already contains the PATH entry.
+    """
+
+    if not os.path.exists(shell_config):
+        return False
+
+    with open(shell_config, "r") as file:
+        content = file.read()
+
+    export_line = f'export PATH="$PATH:{directory}"'
+
+    return export_line in content
+
 def configure_linux_path(paths_to_add):
     """
     Configure PATH on Linux/macOS.
     """
 
-    bashrc = os.path.expanduser("~/.bashrc")
+    shell_config = get_shell_config()
 
-    with open(bashrc, "a") as file:
+    with open(shell_config, "a") as file:
 
         for path in paths_to_add:
 
-            file.write(
-                f'\nexport PATH="$PATH:{path}"\n'
-            )
+            if not shell_config_contains(shell_config, path):
+
+                file.write(
+                    f'\nexport PATH="$PATH:{path}"\n'
+                )
 
             add_to_current_path(path)
 
@@ -247,7 +282,7 @@ def configure_linux_path(paths_to_add):
 
     print("\nPlease restart your terminal or run:")
 
-    print("source ~/.bashrc")
+    print(f"source {shell_config}")
 
 def configure_windows_path(paths_to_add):
     """
@@ -308,22 +343,31 @@ def verify_command(command):
 
     print(f"Checking {command:<15}", end="")
 
+    verification_commands = {
+        "go": "go version",
+        "subfinder": "subfinder -h",
+        "assetfinder": "assetfinder -h",
+        "httpx": "httpx -h",
+        "amass": "amass -h",
+        "subdoverse": "subdoverse -h"
+    }
+
+    cmd = verification_commands.get(command, f"{command} -h")
+
     result = subprocess.run(
-        f"{command} -h",
+        cmd,
         shell=True,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL
     )
 
     if result.returncode == 0:
-
         print("[✓]")
-
         return True
 
-    print("[✗]")
-
-    return False
+    if not command_exists(command):
+        print("[✗]")
+        return False
 
 def install_go_tool(tool_name, install_command):
     """

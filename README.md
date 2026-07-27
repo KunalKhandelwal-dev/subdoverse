@@ -32,315 +32,162 @@ Subdoverse is a Python-powered passive subdomain enumeration framework that aggr
 Subdoverse/
 │
 ├── subdoverse/
-│   ├── exporters/
-│   ├── reporting/
+│   │
+│   ├── __init__.py                 # Marks subdoverse as a Python package
+│   ├── main.py                     # Application entry point
+│   ├── cli.py                      # Command-line argument parser
+│   ├── config.py                   # Loads and manages configuration
+│   ├── config.json                 # Default project configuration
+│   ├── logger.py                   # Logging configuration
+│   │
 │   ├── runners/
-│   ├── utils/
+│   │   ├── __init__.py             # Runner package
+│   │   ├── subfinder.py            # Executes Subfinder enumeration
+│   │   ├── assetfinder.py          # Executes Assetfinder enumeration
+│   │   ├── amass.py                # Executes Amass enumeration
+│   │   └── crtsh.py                # Queries crt.sh Certificate Transparency logs
+│   │
 │   ├── validators/
-│   ├── cli.py
-│   ├── config.py
-│   ├── config.json
-│   ├── logger.py
-│   ├── __init__.py
-│   └── main.py
+│   │   ├── __init__.py             # Validator package
+│   │   ├── dns_validator.py        # Validates discovered subdomains using DNS
+│   │   └── http_validator.py       # Identifies live HTTP/HTTPS hosts
+│   │
+│   ├── exporters/
+│   │   ├── __init__.py             # Exporter package
+│   │   ├── csv_exporters.py        # Exports scan results to CSV
+│   │   └── json_exporters.py       # Exports scan results to JSON
+│   │
+│   ├── reporting/
+│   │   ├── __init__.py             # Reporting package
+│   │   └── report_generator.py     # Generates Markdown summary reports
+│   │
+│   └── utils/
+│       ├── __init__.py             # Utility package
+│       ├── helpers.py              # Common helper functions
+│       ├── merge.py                # Merges and removes duplicate results
+│       └── statistics.py           # Generates scan statistics
 │
-├── LICENSE
-├── README.md
-├── requirements.txt
-├── setup.py
-└── pyproject.toml
+├── install.py                      # Automatic installer for dependencies
+├── setup.py                        # Python package configuration
+├── pyproject.toml                  # Python build configuration
+├── requirements.txt                # Python package dependencies
+├── README.md                       # Project documentation
+├── LICENSE                         # MIT License
+└── .gitignore                      # Git ignore rules
 ```
 
 ---
 
 # Requirements
 
-## Operating System
+- Python 3.10 or higher
+- Git
+- Internet Connection
 
-- Kali Linux (Recommended)
+Supported Operating Systems
+
+- Kali Linux
 - Ubuntu
 - Debian
-- Windows 10/11
 
 ---
 
-## Python
+# Installation
 
-Python 3.10+
-
-Verify:
-
-```bash
-python3 --version
-```
-
----
-
-## Git
-
-Verify:
-
-```bash
-git --version
-```
-
----
-
-# Installation Guide (Kali Linux)
-
-## Step 1 — Update System
-
-```bash
-sudo apt update
-sudo apt upgrade -y
-```
-
----
-
-## Step 2 — Install Required Packages
-
-```bash
-sudo apt install git python3 python3-pip python3-venv golang amass -y
-```
-
-Verify:
-
-```bash
-python3 --version
-git --version
-go version
-amass -version
-```
-
----
-
-## Step 3 — Clone Repository
+Clone the repository
 
 ```bash
 git clone https://github.com/KunalKhandelwal-dev/Subdoverse.git
 ```
 
-Enter the project directory
+Move into the project directory
 
 ```bash
 cd Subdoverse
 ```
 
----
-
-## Step 4 — Create Virtual Environment
+Run the installer
 
 ```bash
-python3 -m venv venv
+python3 install.py
 ```
 
-Activate it
+The installer automatically:
 
-```bash
-source venv/bin/activate
-```
-
-Your terminal should now look like
-
-```text
-(venv)
-```
-
----
-
-## Step 5 — Upgrade pip
-
-```bash
-python -m pip install --upgrade pip
-```
-
----
-
-## Step 6 — Install Python Dependencies
-
-```bash
-pip install .
-```
-
-or for development
-
-```bash
-pip install -e .
-```
-
----
-
-# Installing External Enumeration Tools
-
-Subdoverse depends on several external reconnaissance tools.
-
----
-
-## 1. Subfinder
-
-```bash
-go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
-```
-
-Verify
-
-```bash
-subfinder -h
-```
-
----
-
-## 2. Assetfinder
-
-```bash
-go install github.com/tomnomnom/assetfinder@latest
-```
-
-Verify
-
-```bash
-assetfinder -h
-```
-
----
-
-## 3. httpx
-
-```bash
-go install github.com/projectdiscovery/httpx/cmd/httpx@latest
-```
-
-Verify
-
-```bash
-httpx -h
-```
-
----
-
-## 4. Amass
-
-Already installed earlier using
-
-```bash
-sudo apt install amass -y
-```
-
-Verify
-
-```bash
-amass -h
-```
-
----
-
-## 5. crt.sh
-
-No installation is required.
-
-Subdoverse queries the public Certificate Transparency logs available at:
-
-https://crt.sh
-
-An active internet connection is required for crt.sh enumeration.
-
----
-
-# Add Go Tools to PATH
-
-If Subfinder, Assetfinder, or httpx are not recognized, add the Go binary directory to your PATH.
-
-```bash
-echo 'export PATH=$PATH:$(go env GOPATH)/bin' >> ~/.bashrc
-```
-
-Reload the shell
-
-```bash
-source ~/.bashrc
-```
-
-Verify
-
-```bash
-subfinder -h
-assetfinder -h
-httpx -h
-```
+- Checks the operating system
+- Verifies Python version
+- Checks internet connectivity
+- Installs Go (if required)
+- Installs Subfinder
+- Installs Assetfinder
+- Installs httpx
+- Installs Amass
+- Configures the system PATH
+- Installs the Subdoverse package
+- Verifies the installation
 
 ---
 
 # Verify Installation
 
-Check that Subdoverse was installed successfully.
-
 ```bash
 subdoverse --help
 ```
 
-You should see the command line help menu.
-
 ---
 
-# Running Your First Scan
+# Usage
 
-Example
+Scan a target domain
 
 ```bash
 subdoverse -d google.com
 ```
 
-Another example
+Specify thread count
 
 ```bash
-subdoverse -d example.com
+subdoverse -d google.com -t 50
+```
+
+Export results
+
+```bash
+subdoverse -d google.com -f csv
+```
+
+```bash
+subdoverse -d google.com -f json
+```
+
+Specify an output filename
+
+```bash
+subdoverse -d google.com -o results
+```
+
+Silent mode
+
+```bash
+subdoverse -d google.com --silent
 ```
 
 ---
 
-# Generated Reports
+# Reports
 
-After a successful scan, the following reports are generated.
+Subdoverse generates the following reports after each scan.
 
 ```
 output/
-
-results.csv
-
-results.json
-
-report.md
+├── results.csv
+├── results.json
+└── report.md
 ```
 
----
-
-# CSV Report
-
-Contains
-
-- Live Host
-- Status Code
-- Technologies
-- Title
-- URL
-
----
-
-# JSON Report
-
-Contains complete structured scan results for automation or further processing.
-
----
-
-# Markdown Report
-
-Contains
-
-- Scan Summary
-- Statistics
-- Live Assets
-- Technologies
-- Status Code Distribution
+- **results.csv** – CSV report containing validated results.
+- **results.json** – Structured JSON output for automation.
+- **report.md** – Markdown report summarizing the scan.
 
 ---
 
@@ -371,9 +218,6 @@ DNS Validation
 HTTP Validation
       │
       ▼
-Technology Detection
-      │
-      ▼
 Generate Reports
 ```
 
@@ -381,60 +225,39 @@ Generate Reports
 
 # Troubleshooting
 
-## "subfinder: command not found"
+### `subdoverse: command not found`
 
-Install Subfinder
-
-```bash
-go install github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
-```
-
----
-
-## "assetfinder: command not found"
+Restart your terminal or reload your shell configuration.
 
 ```bash
-go install github.com/tomnomnom/assetfinder@latest
-```
-
----
-
-## "httpx: command not found"
-
-```bash
-go install github.com/projectdiscovery/httpx/cmd/httpx@latest
-```
-
----
-
-## "amass: command not found"
-
-```bash
-sudo apt install amass -y
-```
-
----
-
-## Go binaries are not found
-
-```bash
-echo 'export PATH=$PATH:$(go env GOPATH)/bin' >> ~/.bashrc
 source ~/.bashrc
 ```
 
 ---
 
-## Python dependencies are missing
+### Installation failed because of Python package restrictions
+
+On newer Kali Linux releases, Python uses PEP 668 protection.
+
+Run:
 
 ```bash
-pip install -r requirements.txt
+python3 install.py
 ```
 
-or
+The installer automatically handles package installation.
+
+---
+
+### Go tools are not detected
+
+Reload your shell.
 
 ```bash
-pip install .
+source ~/.bashrc
 ```
+
+Or restart the terminal.
 
 ---
 
@@ -443,6 +266,8 @@ pip install .
 Contributions, feature requests, and bug reports are welcome.
 
 Feel free to open an Issue or submit a Pull Request.
+
+---
 
 ---
 
@@ -458,10 +283,6 @@ See the LICENSE file for details.
 
 **Kunal Khandelwal**
 
-GitHub:
+GitHub: https://github.com/KunalKhandelwal-dev
 
-https://github.com/KunalKhandelwal-dev
-
----
-
-⭐ If you found this project useful, consider giving it a star on GitHub!
+If you found this project useful, consider giving it a star on GitHub!
