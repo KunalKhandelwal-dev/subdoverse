@@ -104,11 +104,13 @@ def install_python_package():
 
     print("\nInstalling Subdoverse...")
 
-    # If inside a virtual environment
     if sys.prefix != sys.base_prefix:
         command = f'"{sys.executable}" -m pip install .'
     else:
-        command = f'"{sys.executable}" -m pip install --user .'
+        command = (
+            f'"{sys.executable}" -m pip install '
+            '--user --break-system-packages .'
+        )
 
     success = run_command(command)
 
