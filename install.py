@@ -105,29 +105,143 @@ def check_internet():
         sys.exit(1)
 
 
-def install_python_package():
+def check_pipx():
     """
-    Install the Subdoverse package.
+    Check whether pipx is installed.
+    Install it through apt if missing.
+    """
+    print("\nChecking pipx...")
+
+    if command_exists("pipx"):
+        print("[✓] pipx is already installed.")
+        return
+
+    print("[+] pipx is not installed.")
+    print("[+] Installing pipx...")
+
+    success = run_command(
+        "sudo apt update && sudo apt install -y pipx"
+    )
+
+    if not success:
+        print("[!] Failed to install pipx.")
+        sys.exit(1)
+
+    if not command_exists("pipx"):
+        print("[!] pipx installation could not be verified.")
+        sys.exit(1)
+
+    print("[✓] pipx installed successfully.")
+
+
+def configure_pipx_path():
+    """
+    Ensure the pipx application directory is available in PATH.
+    """
+    print("\nConfiguring pipx PATH...")
+
+    success = run_command(
+        "pipx ensurepath"
+    )
+
+    if not success:
+        print("[!] pipx PATH configuration failed.")
+        sys.exit(1)
+
+    # pipx normally exposes applications here on Linux.
+    user_bin = os.path.join(
+        os.path.expanduser("~"),
+        ".local",
+        "bin"
+    )
+
+    add_to_current_path(user_bin)
+
+    print(f"[✓] pipx application directory configured: {user_bin}")
+
+
+def install_subdoverse():
+    """
+    Install Subdoverse as an isolated CLI application using pipx.
     """
     print("\nInstalling Subdoverse...")
 
-    if sys.prefix != sys.base_prefix:
-        command = f'"{sys.executable}" -m pip install .'
-    else:
-        command = (
-            f'"{sys.executable}" -m pip install '
-            '--user --break-system-packages .'
+    project_dir = os.path.dirname(
+        os.path.abspath(__file__)
+    )
+
+    command = [
+        "pipx",
+        "install",
+        project_dir,
+        "--force"
+    ]
+
+    print("\n[>] " + " ".join(command))
+
+    try:
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True
         )
 
-    success = run_command(command)
-    if not success:
-        print("[!] Failed to install Subdoverse.")
+        if result.stdout.strip():
+            print(result.stdout.strip())
+
+        if result.returncode != 0:
+            if result.stderr.strip():
+                print(result.stderr.strip())
+            
+            print("[!] Failed to install Subdoverse using pipx.")
+            sys.exit(1)
+
+    except Exception as exc:
+        print(f"[!] Unexpected pipx installation error: {exc}")
         sys.exit(1)
 
+    # Make pipx application directory available
+    # immediately to the running installer.
+    user_bin = os.path.join(
+        os.path.expanduser("~"),
+        ".local",
+        "bin"
+    )
+
+    add_to_current_path(user_bin)
+
     print("[✓] Subdoverse installed successfully.")
-    
-    # Make the current session immediately aware of the new executable
-    add_to_current_path(get_python_scripts_dir())
+
+
+def verify_subdoverse():
+    """
+    Verify the Subdoverse CLI installed by pipx.
+    """
+    print("Checking subdoverse".ljust(25), end="")
+
+    executable = shutil.which("subdoverse")
+
+    if executable is None:
+        print("[✗]")
+        return False
+
+    try:
+        result = subprocess.run(
+            [executable, "--help"],
+            capture_output=True,
+            text=True,
+            timeout=15
+        )
+
+        if result.returncode == 0:
+            print("[✓]")
+            return True
+
+    except (subprocess.SubprocessError, OSError):
+        pass
+
+    print("[✗]")
+    return False
 
 
 def check_go():
@@ -301,22 +415,11 @@ def configure_path():
         configure_linux_path(paths_to_add)
 
 
-def verify_command(command):
+def verify_command(tool_name, cmd):
     """
     Verify that a command executes successfully.
     """
-    print(f"Checking {command:<15}", end="")
-
-    verification_commands = {
-        "go": "go version",
-        "subfinder": "subfinder -version",
-        "assetfinder": "assetfinder -h",
-        "httpx": "httpx -version",
-        "amass": "amass version",
-        "subdoverse": "subdoverse -h"
-    }
-
-    cmd = verification_commands.get(command, f"{command} -h")
+    print(f"Checking {tool_name}".ljust(25), end="")
 
     result = subprocess.run(
         cmd,
@@ -432,25 +535,37 @@ def install_amass():
 
 def verify_installation():
     """
-    Verify that all required tools are installed.
+    Verify that all required components are available.
     """
     print("\n" + "=" * 60)
     print("Verifying Installation")
     print("=" * 60)
 
-    tools = [
-        "go",
-        "subfinder",
-        "assetfinder",
-        "httpx",
-        "amass",
-        "subdoverse"
-    ]
+    verification_commands = {
+        "go": "go version",
+        "subfinder": "subfinder -version",
+        "assetfinder": "assetfinder -h",
+        "amass": "amass version",
+    }
 
     failed = False
-    for tool in tools:
-        if not verify_command(tool):
+
+    for tool, command in verification_commands.items():
+        if not verify_command(tool, command):
             failed = True
+
+    # httpx requires special verification because
+    # another application may also use the name "httpx".
+    print("Checking httpx".ljust(25), end="")
+
+    if is_projectdiscovery_httpx():
+        print("[✓]")
+    else:
+        print("[✗]")
+        failed = True
+
+    if not verify_subdoverse():
+        failed = True
 
     if failed:
         print("\n[!] Installation verification failed.")
@@ -461,22 +576,36 @@ def verify_installation():
 
 def main():
     print_header()
+
     check_os()
     check_python()
     check_internet()
+
+    # Go environment
     check_go()
-    
     configure_path()
-    
+
+    # External reconnaissance tools
     install_subfinder()
     install_assetfinder()
     install_httpx()
     install_amass()
-    
-    install_python_package()
-    
+
+    # Python CLI environment
+    check_pipx()
+    configure_pipx_path()
+    install_subdoverse()
+
+    # Final verification
     verify_installation()
-    print("\nInstallation completed successfully.")
+
+    print("\n" + "=" * 60)
+    print("Installation completed successfully.")
+    print("=" * 60)
+
+    print("\nSubdoverse is ready to use.")
+    print("\nExample:")
+    print("subdoverse -d example.com")
 
 
 if __name__ == "__main__":
