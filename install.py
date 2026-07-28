@@ -545,7 +545,7 @@ def verify_installation():
         "go": "go version",
         "subfinder": "subfinder -version",
         "assetfinder": "assetfinder -h",
-        "amass": "amass version",
+        "amass": "amass -version",
     }
 
     failed = False
