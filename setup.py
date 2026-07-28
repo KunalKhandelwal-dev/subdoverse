@@ -26,7 +26,7 @@ setup(
 
     author="Kunal Khandelwal",
 
-    author_email="your-email@example.com",
+    author_email="kunalkhandelwal155@gmai.com",
 
     url="https://github.com/KunalKhandelwal-dev/subdoverse",
 
