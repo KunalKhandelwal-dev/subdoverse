@@ -144,6 +144,9 @@ Scan a target domain
 subdoverse -d google.com
 ```
 
+<img width="260" height="369" alt="image" src="https://github.com/user-attachments/assets/44c41a9e-11e7-4d7d-b379-916be90d6573" />
+
+
 Specify thread count
 
 ```bash
@@ -184,6 +187,9 @@ output/
 ├── results.json
 └── report.md
 ```
+
+<img width="254" height="256" alt="image" src="https://github.com/user-attachments/assets/9fbc7f3d-ed0e-45b9-85a5-3a0c9056ecb7" />
+
 
 - **results.csv** – CSV report containing validated results.
 - **results.json** – Structured JSON output for automation.
